@@ -1,7 +1,7 @@
 # =============================
-# Student Names:
-# Group ID:
-# Date:
+# Student Names: Mercy Doan, Yash Patel, Jagrit Rai
+# Group ID: 51
+# Date: February 1, 2023
 # =============================
 # CISC 352 - W23
 # propagators.py
@@ -99,5 +99,26 @@ def prop_GAC(csp, newVar=None):
     '''Do GAC propagation. If newVar is None we do initial GAC enforce
        processing all constraints. Otherwise we do GAC enforce with
        constraints containing newVar on GAC Queue'''
+
+    #Remember: deleting from the tail 
+
     #IMPLEMENT
+    queue = [] # Initially all hyperarcs in the CSP
+    while len(queue) > 0:
+        Xi = queue.pop(0)
+        if remove_inconsistent_vals(Xi, X):
+            for Xk in neighbours(Xi):
+                queue.append((Xk, "STAR")) #Any Xk that points to Xi and other stuff
+
+    pass
+
+def remove_inconsistent_vals(Xi, X):
+    removed = False
+    for val in Xi:
+        #if no Y in Xi allows (x, Y) to satisfy the constraints:
+            #delete x from Domain[Xi]
+            removed = True
+    return removed
+
+def neighbours(Xi):
     pass
