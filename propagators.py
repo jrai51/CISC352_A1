@@ -92,7 +92,29 @@ def prop_FC(csp, newVar=None):
        only one uninstantiated variable. Remember to keep
        track of all pruned variable,value pairs and return '''
     #IMPLEMENT
-    pass
+    pruned = []
+    if not newVar: # This is chekcing if newVar is None
+        for c in csp.get_all_cons(): #We are checking all constrains using API
+            if c.get_n_unasgn() == 1: # ...if there is only one unassigned variable usign the api call
+                var = c.get_unasgn_vars()[0] # get the unassigned variable using the get unassigned variables api call, 0th index
+                for val in var.cur_domain(): # for each value in the variable's domain using the cur_domain api call
+                    if not c.has_support(var, val): # check if the constraint has support for the value
+                        var.prune_value(val) # prune the value
+                        pruned.append((var, val)) # add the pruned value to the list of pruned values
+                        if var.cur_domain_size() == 0: # if the variable's domain is empty
+                            return False, pruned # return False and the list of pruned values
+    else: # "If newVar has a value, we evaluate the constraints that include the newVar variable."
+        for c in csp.get_cons_with_var(newVar): # check all constraints that contain the newVar
+            if c.get_n_unasgn() == 1: # if there is only one unassigned variable
+                var = c.get_unasgn_vars()[0] # get the unassigned variable
+                for val in var.cur_domain(): # for each value in the variable's domain
+                    if not c.has_support(var, val): # check if the constraint has support for the value
+                        var.prune_value(val) # prune the value
+                        pruned.append((var, val)) # add the pruned value to the list of pruned values
+                        if var.cur_domain_size() == 0: # if the variable's domain is empty
+                            return False, pruned # return False and the list of pruned values
+    return True, pruned # return True and the list of pruned values
+
 
 
 def prop_GAC(csp, newVar=None):
