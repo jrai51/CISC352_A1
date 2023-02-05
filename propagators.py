@@ -103,7 +103,13 @@ def prop_GAC(csp, newVar=None):
     #Remember: deleting from the tail 
 
     #IMPLEMENT
-    queue = [] # Initially all hyperarcs in the CSP
+
+    if newVar == None:
+        queue = [] # Initially all hyperarcs in the CSP
+    else:
+        queue = []
+
+
     while len(queue) > 0:
         Xi = queue.pop(0)
         if remove_inconsistent_vals(Xi, X):
