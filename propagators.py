@@ -128,36 +128,42 @@ def prop_GAC(csp, newVar=None):
 
     #Queue has to be list of tuples.
     #Each tuple is head(Variable) and a tail(Constraint that includes the head variable).
+    
+    cons = []
 
     if newVar == None:
         queue = [] # Initially all hyperarcs in the CSP
     else:
         queue = []
+        cons = csp.get_cons_with_var(newVar)
+        for con in cons:
+            queue.append((newVar, con))
+
 
 
     while len(queue) > 0:
-        Xi = queue.pop(0)
+        Xi, X = queue.pop(0) #Get a variable and a constraint 
         if remove_inconsistent_vals(Xi, X):
             for Xk in neighbours(Xi):
-                queue.append((Xk, "STAR")) #Any Xk that points to Xi and other stuff
+                #look at node Xk that is a neighbour of Xi, and the nodes that Xk are connected to 
+                neighbour_cons = csp.get_cons_with_var(Xk)
+                for con in neighbour_cons:
+                    queue.append((Xk, con))
 
     pass
 
 def remove_inconsistent_vals(Xi, X):
     removed = False
-    for val in Xi:
-        #if no Y in Xi allows (x, Y) to satisfy the constraints:
+    for val in Xi.domain():
+        #if no Y in Domain(Xi) allows (val, Y) to satisfy the constraints:
+
             #delete x from Domain[Xi]
             removed = True
     return removed
 
 def neighbours(csp, Xi):
-    """
-    1: 
-    2: Find the Variables that are in those Constraints, these Variables are the neighbours.
-    """
     cons = csp.get_all_cons_with_var(Xi) #Find the Constraints that contains Xi.
-    vars = set(cons.scope)
+    vars = set(cons.scope) #Find the Variables that are in those Constraints, these Variables are the neighbours.
     return vars
 
 
