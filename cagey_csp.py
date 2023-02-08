@@ -86,7 +86,27 @@ An example of a 3x3 puzzle would be defined as:
 from cspbase import *
 
 def binary_ne_grid(cagey_grid):
-    ##IMPLEMENT
+    binary_csp = CSP("BinaryCSP")
+    N = cagey_grid[0]
+    cages = cagey_csp_model[1]
+    print(N)
+    for cage in cages:
+        expected_val = cage[0]
+        cells = cage[1]
+        op = cage[2]
+        for cell in cells:
+            name = str(cell)
+            var = Variable(name, [1,2,3,4,5,6,7,8,9])#variable named after the cell
+            binary_csp.add_var(var)
+    
+    #No two cells in one row are the same
+   
+
+    #No two cells in one column are the same 
+        
+
+    ''' Return a CSP object and a list of Variable objects representing the board (cell values and operand for a cage )'''
+
     pass
 
 

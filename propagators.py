@@ -130,9 +130,14 @@ def prop_GAC(csp, newVar=None):
     #Each tuple is head(Variable) and a tail(Constraint that includes the head variable).
     
     cons = []
+    pruned = []
 
     if newVar == None:
         queue = [] # Initially all hyperarcs in the CSP
+        cons = csp.get_all_cons()
+        for con in cons:
+            for var in con.scope:
+                queue.append((var, con))
     else:
         queue = []
         cons = csp.get_cons_with_var(newVar)
@@ -140,26 +145,35 @@ def prop_GAC(csp, newVar=None):
             queue.append((newVar, con))
 
 
+    while queue:
+        Xi, C = queue.pop(0) #Get a variable and a constraint 
+        print(Xi, C)
+        removed = False
+        for val in Xi.cur_domain():
+            for Y in C.scope:
+                if not C.check_var_val(val, Y):
+                    print("check4", val, Y)
+                    pair = (val, Y)
+                    pruned.append(pair)
+                    val.prune_value(Y)
+                    removed = True
+                    print('check2', removed)
+                
+                
+            
+        if removed:
+            if Xi.cur_domain_size() == 0:
+                    return False, pruned
 
-    while len(queue) > 0:
-        Xi, X = queue.pop(0) #Get a variable and a constraint 
-        if remove_inconsistent_vals(Xi, X):
             for Xk in neighbours(Xi):
                 #look at node Xk that is a neighbour of Xi, and the nodes that Xk are connected to 
                 neighbour_cons = csp.get_cons_with_var(Xk)
                 for con in neighbour_cons:
                     queue.append((Xk, con))
+    return True, pruned
 
     pass
 
-def remove_inconsistent_vals(Xi, X):
-    removed = False
-    for val in Xi.domain():
-        #if no Y in Domain(Xi) allows (val, Y) to satisfy the constraints:
-
-            #delete x from Domain[Xi]
-            removed = True
-    return removed
 
 def neighbours(csp, Xi):
     cons = csp.get_all_cons_with_var(Xi) #Find the Constraints that contains Xi.
