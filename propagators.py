@@ -142,43 +142,28 @@ def prop_GAC(csp, newVar=None):
     pruned = []
 
     if newVar == None:
-        queue = []  # Initially all hyperarcs in the CSP
-        cons = csp.get_all_cons()
-        for con in cons:
-            for var in con.scope:
-                queue.append((var, con))
+        queue = csp.get_all_cons()
     else:
-        queue = []
-        cons = csp.get_cons_with_var(newVar)
-        for con in cons:
-            queue.append((newVar, con))
+        queue = csp.get_cons_with_var(newVar)
 
     while queue:
-        Xi, C = queue.pop(0)  # Get a variable and a constraint
-        print(Xi, C)
-        removed = False
-        for val in Xi.cur_domain():
-            for Y in C.scope:
-                if not C.check_var_val(val, Y):
-                    print("check4", val, Y)
-                    pair = (val, Y)
-                    pruned.append(pair)
-                    val.prune_value(Y)
-                    removed = True
-                    print('check2', removed)
+        con = queue.pop(0)
+        for var in con.get_scope():
 
-        if removed:
-            if Xi.cur_domain_size() == 0:
+            removed = False
+            #for every variable, see if there are assignments that satisfy the constraint
+            for val in var.cur_domain():
+                #if the value cannot be assigned, prune it from the domain 
+                if not con.check_var_val(var, val):
+                    var.prune_value(val)
+                    pruned.append((var, val))
+                    removed = True #if a value gets pruned, alert all neighbours that a value has been pruned and edit them
+                     
+            if var.cur_domain_size() == 0: #if all possible variables are exhasusted, search is failed
                 return False, pruned
-
-            for Xk in neighbours(Xi):
-                # look at node Xk that is a neighbour of Xi, and the nodes that Xk are connected to
-                neighbour_cons = csp.get_cons_with_var(Xk)
-                for con in neighbour_cons:
-                    queue.append((Xk, con))
+            if removed:
+                queue.extend(csp.get_cons_with_var(var)) #add all neighbours to the queue 
     return True, pruned
-
-    pass
 
 
 def neighbours(csp, Xi):
