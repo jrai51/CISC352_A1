@@ -84,10 +84,11 @@ An example of a 3x3 puzzle would be defined as:
 '''
 
 from cspbase import *
+
 def _cor_to_idx(x, y, N):
     """ Takes x,y coordinates and size N of grid and returns the index in the variable list"""
     return N*(x-1) + y - 1 
-
+    
 def binary_ne_grid(cagey_grid):
     binary_csp = CSP("BinaryCSP") #construct csp 
     vars = []
@@ -101,20 +102,31 @@ def binary_ne_grid(cagey_grid):
             var = Variable(var_name, dom)
             vars.append(var)
 
-    cages = cagey_csp_model[1]
+   #cages = cagey_csp_model[1]
 
     valid_bin_tuples = [(i, j) for i in range(1, N+1) 
                         for j in range(1, N+1) 
                         if i != j ]
     
     #No two cells in a row can be the same
-    rows = [vars[x:x+N] for x in range(0, len(vars), N)]
+    #rows = [vars[x:x+N] for x in range(0, len(vars), N)]
+
+    rows = []
+    for i in range(1, N+1):
+        row = []
+        for j in range(1, N+1):
+            row.append((i,j))
+        rows.append(row)
+
     for row in rows:
         row_pairs = [(a, b) for idx, a in enumerate(row) for b in row[idx + 1:]]
         for pair in row_pairs:
             cell1, cell2 = pair
-            con = Constraint(f"DIFF_CELL({cell1[0]},{cell1[1]})_CELL({cell2[0]},{cell2[1]})",
-                            [ vars[_cor_to_idx(cell1)], vars[_cor_to_idx(cell2)] ])
+            print('TEST',cell1, cell2)
+            x,y = cell1
+            a,b = cell2
+            con = Constraint(f"DIFF_CELL({x},{y})_CELL({a},{b})",
+                            [ vars[_cor_to_idx(x,y,N)], vars[_cor_to_idx(a,b,N)]])
             con.add_satisfying_tuples(valid_bin_tuples)
             binary_csp.add_constraint(con)
         
@@ -133,13 +145,12 @@ def binary_ne_grid(cagey_grid):
             x,y = cell1
             a,b = cell2
             con = Constraint(f"DIFF_CELL({x},{y})_CELL({a},{b})",
-                            [ vars[_cor_to_idx(cell1)], vars[_cor_to_idx(cell2)]])
+                            [ vars[_cor_to_idx(x,y,N)], vars[_cor_to_idx(a,b,N)]])
             con.add_satisfying_tuples(valid_bin_tuples)
             binary_csp.add_constraint(con)
 
 
     return (binary_csp, vars)
-
             
 
     
