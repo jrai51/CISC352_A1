@@ -84,31 +84,70 @@ An example of a 3x3 puzzle would be defined as:
 '''
 
 from cspbase import *
+def _cor_to_idx(x, y, N):
+    """ Takes x,y coordinates and size N of grid and returns the index in the variable list"""
+    return N*(x-1) + y - 1 
 
 def binary_ne_grid(cagey_grid):
-    binary_csp = CSP("BinaryCSP")
+    binary_csp = CSP("BinaryCSP") #construct csp 
+    vars = []
     N = cagey_grid[0]
+
+    #Create all variables (cells in the grid)
+    for i in range (1, N+1):
+        for j in range(1, N+1):
+            dom = range(1, N+1)
+            var_name = f"Cell({i},{j})"
+            var = Variable(var_name, dom)
+            vars.append(var)
+
     cages = cagey_csp_model[1]
-    print(N)
-    for cage in cages:
-        expected_val = cage[0]
-        cells = cage[1]
-        op = cage[2]
-        for cell in cells:
-            name = str(cell)
-            var = Variable(name, [1,2,3,4,5,6,7,8,9])#variable named after the cell
-            binary_csp.add_var(var)
+
+    valid_bin_tuples = [(i, j) for i in range(1, N+1) 
+                        for j in range(1, N+1) 
+                        if i != j ]
+    
+    #No two cells in a row can be the same
+    rows = [vars[x:x+N] for x in range(0, len(vars), N)]
+    for row in rows:
+        row_pairs = [(a, b) for idx, a in enumerate(row) for b in row[idx + 1:]]
+        for pair in row_pairs:
+            cell1, cell2 = pair
+            con = Constraint(f"DIFF_CELL({cell1[0]},{cell1[1]})_CELL({cell2[0]},{cell2[1]})",
+                            [ vars[_cor_to_idx(cell1)], vars[_cor_to_idx(cell2)] ])
+            con.add_satisfying_tuples(valid_bin_tuples)
+            binary_csp.add_constraint(con)
+        
+    
+    cols = []
+    for i in range(1, N+1):
+        col = []
+        for j in range(1, N+1):
+            col.append((j, i))
+        cols.append(col)
+    #No two cells in a column can be the same 
+    for col in cols:
+        col_pairs = [(a, b) for idx, a in enumerate(col) for b in col[idx + 1:]]
+        for pair in col_pairs:
+            cell1, cell2 = pair
+            x,y = cell1
+            a,b = cell2
+            con = Constraint(f"DIFF_CELL({x},{y})_CELL({a},{b})",
+                            [ vars[_cor_to_idx(cell1)], vars[_cor_to_idx(cell2)]])
+            con.add_satisfying_tuples(valid_bin_tuples)
+            binary_csp.add_constraint(con)
+
+
+    return (binary_csp, vars)
+
+            
+
     
     #No two cells in one row are the same
    
 
     #No two cells in one column are the same 
         
-
-    ''' Return a CSP object and a list of Variable objects representing the board (cell values and operand for a cage )'''
-
-    pass
-
 
 def nary_ad_grid(cagey_grid):
     ## IMPLEMENT
@@ -117,3 +156,4 @@ def nary_ad_grid(cagey_grid):
 def cagey_csp_model(cagey_grid):
     ##IMPLEMENT
     pass
+
