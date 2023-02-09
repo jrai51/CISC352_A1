@@ -1,14 +1,14 @@
 # =============================
-# Student Names:
-# Group ID:
-# Date:
+# Student Names: Jagrit Rai, Mercy Doan, Yash Patel
+# Group ID: 51
+# Date: 2022 - 02 - 08
 # =============================
 # CISC 352 - W23
 # cagey_csp.py
 # desc:
 #
 
-#Look for #IMPLEMENT tags in this file.
+# Look for #IMPLEMENT tags in this file.
 '''
 All models need to return a CSP object, and a list of lists of Variable objects
 representing the board. The returned list of lists is used to access the
@@ -87,52 +87,56 @@ from cspbase import *
 import itertools
 
 """ HELPER FUCTION"""
+
+
 def _cor_to_idx(x, y, N):
     """ Takes x,y coordinates and size N of grid and returns the index in the variable list"""
-    return N*(x-1) + y - 1 
+    return N*(x-1) + y - 1
+
 
 def binary_ne_grid(cagey_grid):
-    binary_csp = CSP("BinaryCSP") #construct csp 
-    vars = [] #Ordered list of variables
+    binary_csp = CSP("BinaryCSP")  # construct csp
+    vars = []  # Ordered list of variables
     N = cagey_grid[0]
 
-    #Create all variables (cells in the grid)
-    for i in range (1, N+1):
+    # Create all variables (cells in the grid)
+    for i in range(1, N+1):
         for j in range(1, N+1):
             dom = range(1, N+1)
             var_name = f"Cell({i},{j})"
             var = Variable(var_name, dom)
             vars.append(var)
-            
-    for var in vars: #add variables to the csp
+
+    for var in vars:  # add variables to the csp
         binary_csp.add_var(var)
-   
-    #valid tuples are all sets of two different numbers
-    valid_bin_tuples = [(i, j) for i in range(1, N+1) 
-                        for j in range(1, N+1) 
-                        if i != j ]
-    
-    #Get list of all rows
+
+    # valid tuples are all sets of two different numbers
+    valid_bin_tuples = [(i, j) for i in range(1, N+1)
+                        for j in range(1, N+1)
+                        if i != j]
+
+    # Get list of all rows
     rows = []
     for i in range(1, N+1):
         row = []
         for j in range(1, N+1):
-            row.append((i,j))
+            row.append((i, j))
         rows.append(row)
 
-    #No two cells in a row can be the same
+    # No two cells in a row can be the same
     for row in rows:
-        row_pairs = [(a, b) for idx, a in enumerate(row) for b in row[idx + 1:]] #all pairs of tuples
+        row_pairs = [(a, b) for idx, a in enumerate(row)
+                     for b in row[idx + 1:]]  # all pairs of tuples
         for pair in row_pairs:
             cell1, cell2 = pair
-            x,y = cell1
-            a,b = cell2
+            x, y = cell1
+            a, b = cell2
             con = Constraint(f"DIFF_CELL({x},{y})_CELL({a},{b})",
-                            [ vars[_cor_to_idx(x,y,N)], vars[_cor_to_idx(a,b,N)]])
+                             [vars[_cor_to_idx(x, y, N)], vars[_cor_to_idx(a, b, N)]])
             con.add_satisfying_tuples(valid_bin_tuples)
             binary_csp.add_constraint(con)
-        
-    #get list of all columns
+
+    # get list of all columns
     cols = []
     for i in range(1, N+1):
         col = []
@@ -140,55 +144,51 @@ def binary_ne_grid(cagey_grid):
             col.append((j, i))
         cols.append(col)
 
-    #No two cells in a column can be the same 
+    # No two cells in a column can be the same
     for col in cols:
-        col_pairs = [(a, b) for idx, a in enumerate(col) for b in col[idx + 1:]] #all pairs of tuples
+        col_pairs = [(a, b) for idx, a in enumerate(col)
+                     for b in col[idx + 1:]]  # all pairs of tuples
         for pair in col_pairs:
             cell1, cell2 = pair
-            x,y = cell1
-            a,b = cell2
+            x, y = cell1
+            a, b = cell2
             con = Constraint(f"DIFF_CELL({x},{y})_CELL({a},{b})",
-                            [ vars[_cor_to_idx(x,y,N)], vars[_cor_to_idx(a,b,N)]])
+                             [vars[_cor_to_idx(x, y, N)], vars[_cor_to_idx(a, b, N)]])
             con.add_satisfying_tuples(valid_bin_tuples)
             binary_csp.add_constraint(con)
 
-
     return (binary_csp, vars)
-            
 
-    
-    #No two cells in one row are the same
-   
-
-    #No two cells in one column are the same 
-        
 
 def nary_ad_grid(cagey_grid):
-    n = cagey_grid[0]
-    domain = [i + 1 for i in range(n)]
+    n = cagey_grid[0]  # size of grid
+    domain = [i + 1 for i in range(n)]  # domain of each variable
     var_array = [Variable("Cell({},{})".format(row, col), domain)
                  for row in domain for col in domain]
     grid_vars = [[var_array[(row - 1) * n + col - 1]
                   for col in domain] for row in domain]
 
+    # defining all possible constraints and adding satisfying tuples to each constraint...
     satisfying_tuples = list(itertools.permutations(domain, n))
     constraints = [
+        # row constraints
         Constraint("C(Row{})".format(i + 1), grid_row) for i, grid_row in enumerate(grid_vars)
     ] + [
         Constraint("C(Col{})".format(i + 1),
-                   [grid_vars[j][i] for j in range(n)])
+                   [grid_vars[j][i] for j in range(n)])  # Column constraints
         for i in range(n)
     ]
     for constraint in constraints:
+        # Specify the constraint by adding its complete list of satisfying tuples
         constraint.add_satisfying_tuples(satisfying_tuples)
 
     csp = CSP("{}-Cagey-nary-ad".format(n), var_array)
     for constraint in constraints:
-        csp.add_constraint(constraint)
+        csp.add_constraint(constraint)  # add constraints to the csp
 
     return csp, var_array
 
-def cagey_csp_model(cagey_grid):
-    ##IMPLEMENT
-    pass
 
+def cagey_csp_model(cagey_grid):
+    # IMPLEMENT
+    pass
