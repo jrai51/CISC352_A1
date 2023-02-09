@@ -86,13 +86,14 @@ An example of a 3x3 puzzle would be defined as:
 from cspbase import *
 import itertools
 
+""" HELPER FUCTION"""
 def _cor_to_idx(x, y, N):
     """ Takes x,y coordinates and size N of grid and returns the index in the variable list"""
     return N*(x-1) + y - 1 
 
 def binary_ne_grid(cagey_grid):
     binary_csp = CSP("BinaryCSP") #construct csp 
-    vars = []
+    vars = [] #Ordered list of variables
     N = cagey_grid[0]
 
     #Create all variables (cells in the grid)
@@ -102,43 +103,54 @@ def binary_ne_grid(cagey_grid):
             var_name = f"Cell({i},{j})"
             var = Variable(var_name, dom)
             vars.append(var)
-
-   #cages = cagey_csp_model[1]
-
+            
+    for var in vars: #add variables to the csp
+        binary_csp.add_var(var)
+   
+    #valid tuples are all sets of two different numbers
     valid_bin_tuples = [(i, j) for i in range(1, N+1) 
                         for j in range(1, N+1) 
                         if i != j ]
     
-    #No two cells in a row can be the same
-    #rows = [vars[x:x+N] for x in range(0, len(vars), N)]
-
-
+    #Get list of all rows
+    rows = []
     for i in range(1, N+1):
+        row = []
         for j in range(1, N+1):
+            row.append((i,j))
+        rows.append(row)
 
-            # Add column constraints
-            for j2 in range(j+1, N+1):
-                con = Constraint(
-                    f"NEQ(({i},{j}),({i},{j2}))",
-                    [
-                        vars[_cor_to_idx(i,j,N)],
-                        vars[_cor_to_idx(i,j2,N)]
-                    ]
-                )
-                con.add_satisfying_tuples(valid_bin_tuples)
-                binary_csp.add_constraint(con)
-            
-            # Add row constraints
-            for i2 in range(i+1, N+1):
-                con = Constraint(
-                    f"NEQ(({i},{j}),({i2},{j}))",
-                    [
-                        vars[_cor_to_idx(i,j,N)],
-                        vars[_cor_to_idx(i2,j,N)]
-                    ]
-                )
-                con.add_satisfying_tuples(valid_bin_tuples)
-                binary_csp.add_constraint(con)
+    #No two cells in a row can be the same
+    for row in rows:
+        row_pairs = [(a, b) for idx, a in enumerate(row) for b in row[idx + 1:]] #all pairs of tuples
+        for pair in row_pairs:
+            cell1, cell2 = pair
+            x,y = cell1
+            a,b = cell2
+            con = Constraint(f"DIFF_CELL({x},{y})_CELL({a},{b})",
+                            [ vars[_cor_to_idx(x,y,N)], vars[_cor_to_idx(a,b,N)]])
+            con.add_satisfying_tuples(valid_bin_tuples)
+            binary_csp.add_constraint(con)
+        
+    #get list of all columns
+    cols = []
+    for i in range(1, N+1):
+        col = []
+        for j in range(1, N+1):
+            col.append((j, i))
+        cols.append(col)
+
+    #No two cells in a column can be the same 
+    for col in cols:
+        col_pairs = [(a, b) for idx, a in enumerate(col) for b in col[idx + 1:]] #all pairs of tuples
+        for pair in col_pairs:
+            cell1, cell2 = pair
+            x,y = cell1
+            a,b = cell2
+            con = Constraint(f"DIFF_CELL({x},{y})_CELL({a},{b})",
+                            [ vars[_cor_to_idx(x,y,N)], vars[_cor_to_idx(a,b,N)]])
+            con.add_satisfying_tuples(valid_bin_tuples)
+            binary_csp.add_constraint(con)
 
 
     return (binary_csp, vars)
